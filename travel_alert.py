@@ -1,3 +1,11 @@
+# TO-DO:
+# 1. Improve extraction of lines to list_of_lines, then remove entire_string
+
+
+# REFERENCES:
+# check regex: https://regex101.com/
+
+
 from bs4 import BeautifulSoup, NavigableString, Tag
 import requests
 import re
@@ -77,6 +85,7 @@ name_loc = []
 alert_stack = []
 list_of_lines = []
 
+
 # Get country name and location in text
 for item in first_filter.find_all('strong'):
     country = item.text.strip()
@@ -85,6 +94,26 @@ for item in first_filter.find_all('strong'):
     index = (start, end)
     countries.append(country)
     name_loc.append(index)
+
+
+# Issues 11/02/2020 : [INCONSISTENT .htm format]
+# print(countries)
+# unwanted_ele = {'Australia.', 'days.', 'crew.', 'M'}
+# countries = [ele for ele in countries if ele not in unwanted_ele]
+# # print(countries)
+# countries[24] = 'KOREA (REP.)'
+# countries[33] = 'MICRONESIA (FEDERATED STATES)'
+# countries[35] = 'MYANMAR'
+# print(countries)
+# print(entire_string)
+
+# Set index for country's location in entire_string
+# for y in countries:
+#     start = entire_string.find(y)
+#     end = start + len(y)
+#     index = (start, end)
+#     name_loc.append(index)
+
 
 for br in first_filter.findAll('br'):
     next_s = br.nextSibling
@@ -116,8 +145,9 @@ for country in countries:
         date_string)+len(date_string), len(raw_msg), 1)].strip()
 
     # Format alert lines for each country:
-    # Try to get from list of lines, if missing then patch with entire string for
+    # Try to get from list_of_lines, if missing then patch with entire_string for
     # each country.
+    # Should improve extraction to list_of_lines
     country_para = []
     for line in list_of_lines:
         if line in remove_date_msg:
@@ -127,17 +157,23 @@ for country in countries:
                 missed_lines = remove_date_msg[slice(0, position_zero_test, 1)]
                 country_para.append(missed_lines)
                 country_para.append(line)
-                list_of_lines = list_of_lines[1:]
-                remove_date_msg = remove_date_msg[slice(remove_date_msg.find(
-                    line)+len(line), len(remove_date_msg), 1)].strip()
 
             elif position_zero_test == 0:
                 country_para.append(line)
-                list_of_lines = list_of_lines[1:]
-                remove_date_msg = remove_date_msg[slice(remove_date_msg.find(
-                    line)+len(line), len(remove_date_msg), 1)].strip()
+
+            list_of_lines = list_of_lines[1:]
+            remove_date_msg = remove_date_msg[slice(remove_date_msg.find(
+                line)+len(line), len(remove_date_msg), 1)].strip()
 
     clean_msg = ''.join(x+'|' for x in country_para)+remove_date_msg
+
+    # Add extra pipes between number bullets
+    break_list = re.findall(r"[1-9]\.", clean_msg)
+    if not len(break_list) == 0:
+        break_list = break_list[1:]
+        for number in break_list:
+            clean_msg = "{}|{}".format(
+                clean_msg[:clean_msg.find(number)], clean_msg[clean_msg.find(number):])
 
     # Timestamp added into database
     added_time = datetime.datetime.now(
@@ -152,7 +188,6 @@ for country in countries:
     }
 
     alert_stack.append(alert_object)
-
 
 save_to_db()
 # print(alert_stack)
