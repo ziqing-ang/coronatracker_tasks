@@ -96,6 +96,34 @@ for item in first_filter.find_all('strong'):
     name_loc.append(index)
 
 
+# Issue 14/02/2020: Occurence of country names in <strong> that appears in entire_string
+# e.g.: USA before country's information
+for loc_tuple in name_loc:
+    if name_loc.index(loc_tuple) == 0:
+        pass
+
+    elif name_loc.index(loc_tuple) == len(name_loc)-1:
+        pass
+
+    else:
+        # If current name location is before the location of the previous contry
+        # Temporarily cut entire_string starting right after the previous country
+        # then find the location of the country name
+        if loc_tuple[0] < name_loc[name_loc.index(loc_tuple)-1][1]:
+            temporary_country_loc_string = entire_string[slice(
+                name_loc[name_loc.index(loc_tuple)-1][1], len(entire_string), 1)]
+            temp_start = temporary_country_loc_string.find(
+                countries[name_loc.index(loc_tuple)]) + name_loc[name_loc.index(loc_tuple)-1][1]
+            temp_end = temp_start + len(countries[name_loc.index(loc_tuple)])
+            name_loc[name_loc.index(loc_tuple)] = (temp_start, temp_end)
+            # print("Problematic country: {}".format(
+            #     countries[name_loc.index(loc_tuple)]))
+            # print((temp_start, temp_end))
+
+
+print(countries)
+print(len(countries))
+
 # Issues 11/02/2020 : [INCONSISTENT .htm format]
 # print(countries)
 # unwanted_ele = {'Australia.', 'days.', 'crew.', 'M'}
@@ -135,6 +163,8 @@ for country in countries:
     elif countries.index(country) == len(countries)-1:
         raw_msg = entire_string[slice(name_loc[countries.index(
             country)][1], entire_string.find(nonsense_1), 1)].strip()
+
+    # print("This is raw for country {}: {}".format(country, raw_msg))
 
     # Get website's update date
     date_string = re.findall(r"[0-9][0-9].[0-9][0-9].[\d]{4}", raw_msg)[0]
