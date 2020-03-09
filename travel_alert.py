@@ -95,6 +95,15 @@ for item in first_filter.find_all('strong'):
     countries.append(country)
     name_loc.append(index)
 
+    # if country == 'Effective 8 March 2020':
+    #     continue
+    # else:
+    #     start = entire_string.find(country)
+    #     end = start + len(country)
+    #     index = (start, end)
+    #     countries.append(country)
+    #     name_loc.append(index)
+
 
 # Issue 14/02/2020: Occurence of country names in <strong> that appears in entire_string
 # e.g.: USA before country's information
@@ -121,18 +130,28 @@ for loc_tuple in name_loc:
             # print((temp_start, temp_end))
 
 
-print(countries)
-print(len(countries))
+# print(countries)
+# print(len(countries))
+
+
+# Issue 21/02/2020: Extra items in <strong> that is not country name
+# countries = countries[1:]
+# name_loc = name_loc[1:]
+
+# print(countries)
 
 # Issues 11/02/2020 : [INCONSISTENT .htm format]
 # print(countries)
-# unwanted_ele = {'Australia.', 'days.', 'crew.', 'M'}
+# unwanted_ele = {'Effective 8 March 2020'}
 # countries = [ele for ele in countries if ele not in unwanted_ele]
 # # print(countries)
 # countries[24] = 'KOREA (REP.)'
 # countries[33] = 'MICRONESIA (FEDERATED STATES)'
 # countries[35] = 'MYANMAR'
-# print(countries)
+print(countries)
+print(len(countries))
+print(len(name_loc))
+
 # print(entire_string)
 
 # Set index for country's location in entire_string
@@ -164,10 +183,19 @@ for country in countries:
         raw_msg = entire_string[slice(name_loc[countries.index(
             country)][1], entire_string.find(nonsense_1), 1)].strip()
 
-    # print("This is raw for country {}: {}".format(country, raw_msg))
+    print("This is raw for country {}: {}".format(country, raw_msg))
 
+    # print(raw_msg)
     # Get website's update date
-    date_string = re.findall(r"[0-9][0-9].[0-9][0-9].[\d]{4}", raw_msg)[0]
+    # print("Problematic country name: {}".format(country))
+    try:
+        date_string = re.findall(r"[0-9][0-9].[0-9][0-9].[\d]{4}", raw_msg)[0]
+
+    except:
+        print("Problematic country name: {}".format(country))
+        continue
+    # print(date_string)
+
     published_date = datetime.datetime.strptime(
         date_string, "%d.%m.%Y").date().strftime("%Y-%m-%d")
 
